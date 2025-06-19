@@ -8,4 +8,14 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ServerCore">
+      <HintPath>ServerCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
