@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Google.Protobuf.Collections;
 using Google.Protobuf.Protocol;
 
 public class RoomManager
@@ -16,7 +17,7 @@ public class RoomManager
     public RoomInfo CurrentRoom { get; set; } = null; // 현재 참여 중인 방 정보
 
     public Dictionary<int, RoomInfo> Rooms { get; private set; } = new Dictionary<int, RoomInfo>();
-    public HashSet<int> UserIds { get; private set; } = new HashSet<int>(); // 로비에 존재하는 유저의 id목록
+    public Dictionary<int, UserInfo> UserInfos { get; private set; } = new Dictionary<int, UserInfo>(); // 로비에 존재하는 유저의 id목록
 
     object _lock = new object();
 
@@ -32,8 +33,7 @@ public class RoomManager
             if (Rooms.TryGetValue(roomId, out RoomInfo room))
             {
                 room.UserInfos.Add(userInfo);
-                CurrentRoom = room;
-                UserIds.Remove(userInfo.UserId); // 로비에서 제거
+                UserInfos.Remove(userInfo.UserId); // 로비에서 제거
             }
         }
     }
@@ -42,7 +42,7 @@ public class RoomManager
     {
         lock (_lock)
         {
-            UserIds.Add(userInfo.UserId);
+            UserInfos[userInfo.UserId] = userInfo;
         }
     }
 
@@ -56,10 +56,11 @@ public class RoomManager
                 RoomName = TempRoomName,
                 RoomMasterUserId = roomMasterId
             };
-            roomInfo.UserInfos.Add(new UserInfo { UserId = roomMasterId }); // 방장 유저 추가
+            TempRoomName = string.Empty; // 방 이름 초기화
+            roomInfo.UserInfos.Add(UserInfos[roomMasterId]); // 방장 유저 추가
             Rooms.Add(roomInfo.RoomId, roomInfo);
             CurrentRoom = roomInfo; // 현재 방 정보 설정
-            UserIds.Remove(roomMasterId); // 방장 유저는 로비에서 제거
+            UserInfos.Remove(roomMasterId); // 방장 유저는 로비에서 제거
         }
     }
 
@@ -69,7 +70,7 @@ public class RoomManager
         {
             Rooms.TryGetValue(CurrentRoom.RoomId, out RoomInfo roomInfo);
             roomInfo.UserInfos.Remove(userInfo);
-            UserIds.Add(userInfo.UserId); // 유저를 로비로 이동
+            UserInfos.Add(userInfo.UserId, userInfo); // 유저를 로비로 이동
         }
     }
 
@@ -82,31 +83,12 @@ public class RoomManager
         }
     }
 
-    public void RefreshUserList(S_UserList s_UserList)
+    public void RefreshUserInfos(RepeatedField<UserInfo> userInfos)
     {
-        lock (_lock)
+        UserInfos.Clear();
+        foreach (var user in userInfos)
         {
-            if (s_UserList.RoomId != 0)
-            {
-                // 현재 방에 있는 유저 목록 갱신
-                if (Rooms.TryGetValue(s_UserList.RoomId, out RoomInfo room))
-                {
-                    room.UserInfos.Clear();
-                    foreach (var user in s_UserList.UserInfos)
-                    {
-                        room.UserInfos.Add(user);
-                    }
-                }
-            }
-            else
-            {
-                // 로비에 있는 유저 목록 갱신
-                UserIds.Clear();
-                foreach (var user in s_UserList.UserInfos)
-                {
-                    UserIds.Add(user.UserId);
-                }
-            }
+            UserInfos.Add(user.UserId, user);
         }
     }
 }

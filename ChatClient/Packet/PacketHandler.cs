@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.Protocol;
 using Google.Protobuf.WellKnownTypes;
 using ServerCore;
@@ -35,8 +36,8 @@ public static class PacketHandler
         serverSession.Send(c_Ping);
     }
 
-   public static void S_SetNicknameHandler(Session session, IMessage packet)
-   {
+    public static void S_SetNicknameHandler(Session session, IMessage packet)
+    {
         ServerSession serverSession = session as ServerSession;
         S_SetNickname s_SetNicknamePacket = packet as S_SetNickname;
 
@@ -84,7 +85,6 @@ public static class PacketHandler
         S_RoomList s_RoomListPacket = packet as S_RoomList;
 
         // 방 목록 갱신
-        serverSession.ViewManager.ShowRoomList(s_RoomListPacket.Rooms);
         RoomManager.Instance.Refresh(s_RoomListPacket.Rooms);
     }
 
@@ -107,13 +107,32 @@ public static class PacketHandler
     /// </summary>
     /// <param name="session"></param>
     /// <param name="packet"></param>
-    public static void S_EnterUserHandler(Session session, IMessage packet)
+    public static void S_EnterRoomAnyUserHandler(Session session, IMessage packet)
     {
         ServerSession serverSession = session as ServerSession;
-        S_EnterUser s_EnterUserPacket = packet as S_EnterUser;
+        S_EnterRoomAnyUser s_EnterRoomAnyUserPacket = packet as S_EnterRoomAnyUser;
 
         var roomManager = RoomManager.Instance;
-        roomManager.AddUserToRoom(s_EnterUserPacket.RoomId, serverSession.UserInfo);
+
+        roomManager.AddUserToRoom(s_EnterRoomAnyUserPacket.RoomId, serverSession.UserInfo);
+        serverSession.ViewManager.ShowRoomUserList(roomManager.Rooms[s_EnterRoomAnyUserPacket.RoomId].UserInfos);
+    }
+
+    /// <summary>
+    /// 로비에 있을 경우 누군가 로비에 입장했을 때 호출되는 핸들러.
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="packet"></param>
+    public static void S_EnterLobbyAnyUserHandler(Session session, IMessage packet)
+    {
+        ServerSession serverSession = session as ServerSession;
+        S_EnterLobbyAnyUser s_EnterUserPacket = packet as S_EnterLobbyAnyUser;
+
+        var roomManager = RoomManager.Instance;
+
+        // 로비에 유저가 입장했을 때
+        roomManager.AddUserToLobby(s_EnterUserPacket.UserInfo);
+        serverSession.ViewManager.ShowLobbyUserList(roomManager.UserInfos);
     }
 
     public static void S_UserListHandler(Session session, IMessage packet)
@@ -121,8 +140,11 @@ public static class PacketHandler
         ServerSession serverSession = session as ServerSession;
         S_UserList s_UserListPacket = packet as S_UserList;
 
-        serverSession.ViewManager.ShowUserList(s_UserListPacket);
-        RoomManager.Instance.RefreshUserList(s_UserListPacket);
+        // 유저 리스트 갱신
+        RoomManager.Instance.RefreshUserInfos(s_UserListPacket.UserInfos);
+
+        // 유저 리스트를 뷰 매니저에 전달하여 UI 갱신
+        //serverSession.ViewManager.ShowUserList(s_UserListPacket.UserInfos);
     }
 
     public static void S_LeaveRoomHandler(Session session, IMessage packet)
@@ -133,4 +155,20 @@ public static class PacketHandler
         RoomManager.Instance.LeaveRoom(serverSession.UserInfo);
     }
 
+    public static void S_EnterLobbyHandler(Session session, IMessage packet)
+    {
+        ServerSession serverSession = session as ServerSession;
+        S_EnterLobby s_EnterLobby = packet as S_EnterLobby;
+
+        // 룸 리스트 갱신
+        RoomManager.Instance.Refresh(s_EnterLobby.Rooms);
+
+        // 로비에 입장했을 때 유저 리스트 갱신
+        RoomManager.Instance.RefreshUserInfos(s_EnterLobby.UserInfos);
+
+        // 뷰 매니저에 룸 리스트와 유저 리스트를 전달하여 UI 갱신
+        serverSession.ViewManager.ShowRoomList(s_EnterLobby.Rooms);
+        serverSession.ViewManager.ShowRoomUserList(s_EnterLobby.UserInfos);
+
+    }
 }

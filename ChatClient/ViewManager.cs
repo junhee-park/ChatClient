@@ -13,8 +13,10 @@ public interface IViewManager
 {
     void ShowText(string text);
     void ShowText(S_Chat s_Chat);
-    void ShowRoomList(Google.Protobuf.Collections.RepeatedField<RoomInfo> roomInfos);
-    void ShowUserList(S_UserList s_UserList);
+    void ShowRoomList(RepeatedField<RoomInfo> roomInfos);
+    void ShowRoomUserList(RepeatedField<UserInfo> userInfos);
+    void ShowLobbyUserList(RepeatedField<UserInfo> userInfos);
+    void ShowLobbyUserList(Dictionary<int, UserInfo> userInfos);
 }
 
 public class ViewManager : IViewManager
@@ -53,27 +55,42 @@ public class ViewManager : IViewManager
         throw new NotImplementedException();
     }
 
-    public void ShowUserList(S_UserList s_UserList)
+
+    public void ShowRoomUserList(RepeatedField<UserInfo> userInfos)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            if (s_UserList.RoomId != 0)
+            // 현재 방에 있는 유저 목록 갱신
+            MainWindow.LobbyUsers.Clear();
+            foreach (var user in userInfos)
             {
-                // 현재 방에 있는 유저 목록 갱신
-                MainWindow.ChatUsers.Clear();
-                foreach (var user in s_UserList.UserInfos)
-                {
-                    MainWindow.LobbyUsers.Add(user.Nickname);
-                }
+                MainWindow.LobbyUsers.Add(user.Nickname);
             }
-            else
+        });
+    }
+
+    public void ShowLobbyUserList(RepeatedField<UserInfo> userInfos)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            // 로비에 있는 유저 목록 갱신
+            MainWindow.LobbyUsers.Clear();
+            foreach (var user in userInfos)
             {
-                // 로비에 있는 유저 목록 갱신
-                MainWindow.LobbyUsers.Clear();
-                foreach (var user in s_UserList.UserInfos)
-                {
-                    MainWindow.LobbyUsers.Add(user.Nickname);
-                }
+                MainWindow.LobbyUsers.Add(user.Nickname);
+            }
+        });
+    }
+
+    public void ShowLobbyUserList(Dictionary<int, UserInfo> userInfos)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            // 로비에 있는 유저 목록 갱신
+            MainWindow.LobbyUsers.Clear();
+            foreach (var user in userInfos)
+            {
+                MainWindow.LobbyUsers.Add(user.Value.Nickname);
             }
         });
     }
