@@ -41,11 +41,28 @@ public static class PacketHandler
         ServerSession serverSession = session as ServerSession;
         S_SetNickname s_SetNicknamePacket = packet as S_SetNickname;
 
-        if (s_SetNicknamePacket.Success)
+        // 닉네임 변경 실패 에러 출력
+        if (s_SetNicknamePacket.Success == false)
         {
-            serverSession.UserInfo.Nickname = serverSession.TempNickname;
-            serverSession.UserInfo.UserId = s_SetNicknamePacket.UserId;
+            Console.WriteLine(s_SetNicknamePacket.Reason);
+            return;
         }
+
+        string oldNickname;
+        if (s_SetNicknamePacket.UserId == serverSession.UserInfo.UserId)
+        {
+            // 현재 세션의 유저 정보 닉네임 변경
+            oldNickname = serverSession.UserInfo.Nickname;
+            serverSession.UserInfo.Nickname = s_SetNicknamePacket.Nickname;
+            serverSession.ViewManager.ShowChangedNickname(oldNickname, s_SetNicknamePacket.Nickname);
+        }
+        else
+        {
+            // 다른 유저의 닉네임 변경
+            oldNickname = RoomManager.Instance.ChangeNickname(s_SetNicknamePacket.Nickname, s_SetNicknamePacket.UserId);
+            serverSession.ViewManager.ShowChangedNickname(oldNickname, s_SetNicknamePacket.Nickname);
+        }
+
     }
 
     public static void S_CreateRoomHandler(Session session, IMessage packet)

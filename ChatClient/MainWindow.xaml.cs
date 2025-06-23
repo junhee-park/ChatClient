@@ -1,6 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
 using System.Net;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -43,8 +46,8 @@ namespace ChatClient
             RoomListBox.ItemsSource = Rooms;
             ChatUserList.ItemsSource = ChatUsers;
 
-            C_EnterLobby c_EnterLobby = new C_EnterLobby();
-            serverSession.Send(c_EnterLobby);
+
+            this.Closing += MainWindow_Closing;
         }
 
         private void EnterLobby()
@@ -113,7 +116,14 @@ namespace ChatClient
             var input = new InputDialog("닉네임 변경", "새 닉네임을 입력하세요:");
             if (input.ShowDialog() == true)
             {
-                MessageBox.Show($"닉네임이 '{input.Content}'로 변경되었습니다.");
+                serverSession.TempNickname = input.InputText;
+
+                // 서버에 닉네임 변경 요청을 보내는 로직 추가
+                C_SetNickname c_SetNickname = new C_SetNickname
+                {
+                    Nickname = input.InputText
+                };
+                serverSession.Send(c_SetNickname);
             }
         }
 
@@ -125,5 +135,33 @@ namespace ChatClient
                 ChatInput.Clear();
             }
         }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            // 세션 정리 코드
+            try
+            {
+                if (serverSession != null)
+                {
+                    serverSession.OnDisconnect(serverSession.Socket.RemoteEndPoint);
+                    serverSession.Disconnect();
+                    serverSession = null;
+                }
+                // 추가적인 정리 작업이 필요하다면 여기에 작성
+            }
+            catch (Exception ex)
+            {
+                // 로그 출력 또는 예외 처리
+                Console.WriteLine("종료 중 오류: " + ex.Message);
+            }
+        }
     }
+
+    //public static class ToStringExtensions
+    //{
+    //    public static string ToString(this UserInfo userInfo)
+    //    {
+    //        return userInfo.Nickname;
+    //    }
+    //}
 }

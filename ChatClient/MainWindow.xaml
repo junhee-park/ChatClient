@@ -11,7 +11,13 @@
 
             <!-- 유저 목록 -->
             <GroupBox Header="유저 목록" Grid.Column="0" Margin="5">
-                <ListBox x:Name="LobbyUserList"/>
+                <ListBox x:Name="LobbyUserList">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Margin="5"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </GroupBox>
 
             <!-- 방 목록 -->

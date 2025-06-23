@@ -17,6 +17,7 @@ public interface IViewManager
     void ShowRoomUserList(RepeatedField<UserInfo> userInfos);
     void ShowLobbyUserList(RepeatedField<UserInfo> userInfos);
     void ShowLobbyUserList(Dictionary<int, UserInfo> userInfos);
+    void ShowChangedNickname(string oldName, string newName);
 }
 
 public class ViewManager : IViewManager
@@ -92,6 +93,15 @@ public class ViewManager : IViewManager
             {
                 MainWindow.LobbyUsers.Add(user.Value.Nickname);
             }
+        });
+    }
+
+    public void ShowChangedNickname(string oldName, string newName)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            MainWindow.LobbyUsers.Remove(oldName);
+            MainWindow.LobbyUsers.Add(newName);
         });
     }
 }
