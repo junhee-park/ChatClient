@@ -14,7 +14,7 @@
                 <ListBox x:Name="LobbyUserList">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" Margin="5"/>
+                            <TextBlock Text="{Binding Nickname}" Margin="5"/>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

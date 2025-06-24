@@ -18,6 +18,7 @@ public interface IViewManager
     void ShowLobbyUserList(RepeatedField<UserInfo> userInfos);
     void ShowLobbyUserList(Dictionary<int, UserInfo> userInfos);
     void ShowChangedNickname(string oldName, string newName);
+    void ShowChangedNickname(UserInfo userInfo, string newName);
 }
 
 public class ViewManager : IViewManager
@@ -65,7 +66,7 @@ public class ViewManager : IViewManager
             MainWindow.LobbyUsers.Clear();
             foreach (var user in userInfos)
             {
-                MainWindow.LobbyUsers.Add(user.Nickname);
+                MainWindow.LobbyUsers.Add(new UserInfoViewModel(user));
             }
         });
     }
@@ -78,7 +79,7 @@ public class ViewManager : IViewManager
             MainWindow.LobbyUsers.Clear();
             foreach (var user in userInfos)
             {
-                MainWindow.LobbyUsers.Add(user.Nickname);
+                MainWindow.LobbyUsers.Add(new UserInfoViewModel(user));
             }
         });
     }
@@ -91,7 +92,7 @@ public class ViewManager : IViewManager
             MainWindow.LobbyUsers.Clear();
             foreach (var user in userInfos)
             {
-                MainWindow.LobbyUsers.Add(user.Value.Nickname);
+                MainWindow.LobbyUsers.Add(new UserInfoViewModel(user.Value));
             }
         });
     }
@@ -100,8 +101,23 @@ public class ViewManager : IViewManager
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            MainWindow.LobbyUsers.Remove(oldName);
-            MainWindow.LobbyUsers.Add(newName);
+            //MainWindow.LobbyUsers.Remove(oldName);
+            //MainWindow.LobbyUsers.Add(newName);
+        });
+    }
+
+    public void ShowChangedNickname(UserInfo userInfo, string newName)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            foreach (var user in MainWindow.LobbyUsers)
+            {
+                if (user.Proto.UserId == userInfo.UserId)
+                {
+                    user.Nickname = newName;
+                    break;
+                }
+            }
         });
     }
 }

@@ -3,11 +3,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using ChatClient;
+using Google.Protobuf;
 using Google.Protobuf.Protocol;
 using ServerCore;
 
@@ -16,7 +18,7 @@ namespace ChatClient
     public partial class MainWindow : Window
     {
         static ServerSession serverSession;
-        public ObservableCollection<string> LobbyUsers { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<UserInfoViewModel> LobbyUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
         public ObservableCollection<string> Rooms { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> ChatUsers { get; set; } = new ObservableCollection<string>();
         public ObservableCollection<string> ChatLogs { get; set; } = new ObservableCollection<string>();
@@ -157,11 +159,50 @@ namespace ChatClient
         }
     }
 
-    //public static class ToStringExtensions
-    //{
-    //    public static string ToString(this UserInfo userInfo)
-    //    {
-    //        return userInfo.Nickname;
-    //    }
-    //}
+    public abstract class ProtoViewModelBase<TProto> : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected TProto _proto;
+
+        public TProto Proto => _proto;
+
+        public ProtoViewModelBase(TProto proto)
+        {
+            _proto = proto;
+        }
+
+        protected bool SetProperty<T>(Func<T> getter, Action<T> setter, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (!EqualityComparer<T>.Default.Equals(getter(), value))
+            {
+                setter(value);
+                OnPropertyChanged(propertyName);
+                return true;
+            }
+            return false;
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string name = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    public class UserInfoViewModel : ProtoViewModelBase<UserInfo>
+    {
+        public UserInfoViewModel(UserInfo proto) : base(proto) { }
+
+        public string Nickname
+        {
+            get => _proto.Nickname;
+            set => SetProperty(() => _proto.Nickname, v => _proto.Nickname = v, value);
+        }
+
+        public int UserId
+        {
+            get => _proto.UserId;
+            set => SetProperty(() => _proto.UserId, v => _proto.UserId = v, value);
+        }
+    }
 }
