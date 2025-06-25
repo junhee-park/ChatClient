@@ -9,21 +9,6 @@ using ChatClient;
 using Google.Protobuf.Collections;
 using Google.Protobuf.Protocol;
 
-public interface IViewManager
-{
-    void ShowText(string text);
-    void ShowText(S_Chat s_Chat);
-    void ShowRoomList(RepeatedField<RoomInfo> roomInfos);
-    void ShowRoomUserList(RepeatedField<UserInfo> userInfos);
-    void ShowLobbyUserList(RepeatedField<UserInfo> userInfos);
-    void ShowLobbyUserList(Dictionary<int, UserInfo> userInfos);
-    void ShowChangedNickname(UserInfo userInfo, string newName);
-    void ShowLobbyScreen();
-    void ShowRoomScreen();
-    void ShowAddedRoom(RoomInfo roomInfo);
-    void ShowAddedUser(int roomId, UserInfo userInfo);
-    void ShowRemovedUser(int roomId, UserInfo userInfo);
-}
 public class ViewManager : IViewManager
 {
     public MainWindow MainWindow { get; set; } // 메인 윈도우 참조
@@ -143,11 +128,30 @@ public class ViewManager : IViewManager
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            foreach (var room in MainWindow.Rooms)
+            if (roomId == 0)
             {
-                if (room.RoomId == roomId)
+                // 로비에 유저 추가
+                MainWindow.LobbyUsers.Add(new UserInfoViewModel(userInfo));
+                return;
+            }
+            else
+            {
+                if (RoomManager.Instance.CurrentRoom == null)
                 {
-                    room.UserInfos.Add(userInfo);
+                    // 로비에 있는 상태에서 방에 유저 추가
+                    foreach (var room in MainWindow.Rooms)
+                    {
+                        if (room.RoomId == roomId)
+                        {
+                            room.UserInfos.Add(userInfo);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    // 방에 있는 상태에서 방에 유저 추가
+                    MainWindow.ChatUsers.Add(new UserInfoViewModel(userInfo));
                 }
             }
         });
