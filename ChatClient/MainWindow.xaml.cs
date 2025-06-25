@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using ChatClient;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.Protocol;
 using ServerCore;
 
@@ -19,8 +20,8 @@ namespace ChatClient
     {
         static ServerSession serverSession;
         public ObservableCollection<UserInfoViewModel> LobbyUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
-        public ObservableCollection<string> Rooms { get; set; } = new ObservableCollection<string>();
-        public ObservableCollection<string> ChatUsers { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<RoomInfoViewModel> Rooms { get; set; } = new ObservableCollection<RoomInfoViewModel>();
+        public ObservableCollection<UserInfoViewModel> ChatUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
         public ObservableCollection<string> ChatLogs { get; set; } = new ObservableCollection<string>();
 
         private string currentRoom = "";
@@ -48,6 +49,12 @@ namespace ChatClient
             RoomListBox.ItemsSource = Rooms;
             ChatUserList.ItemsSource = ChatUsers;
 
+            //RoomInfoViewModel roomInfoViewModel = new RoomInfoViewModel(new RoomInfo());
+            //roomInfoViewModel.RoomName = "기본 방";
+            //roomInfoViewModel.RoomId = 1;
+            //roomInfoViewModel.RoomMasterUserId = 1;
+            //Rooms.Add(roomInfoViewModel);
+            //LobbyUsers.Add(new UserInfoViewModel(new UserInfo { Nickname = "User1", UserId = 1 }));
 
             this.Closing += MainWindow_Closing;
         }
@@ -58,13 +65,13 @@ namespace ChatClient
             serverSession.Send(c_EnterLobby);
         }
 
-        private void ShowLobbyScreen()
+        public void ShowLobbyScreen()
         {
             LobbyScreen.Visibility = Visibility.Visible;
             ChatRoomScreen.Visibility = Visibility.Collapsed;
         }
 
-        private void ShowChatRoomScreen()
+        public void ShowChatRoomScreen()
         {
             LobbyScreen.Visibility = Visibility.Collapsed;
             ChatRoomScreen.Visibility = Visibility.Visible;
@@ -75,22 +82,26 @@ namespace ChatClient
             var input = new InputDialog("방 생성", "방 이름을 입력하세요:");
             if (input.ShowDialog() == true)
             {
-                Rooms.Add(input.Content.ToString());
+                C_CreateRoom c_CreateRoom = new C_CreateRoom
+                {
+                    RoomName = input.InputText
+                };
+                serverSession.Send(c_CreateRoom);
             }
         }
 
         private void JoinRoomButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is string roomName)
+            if (sender is Button btn && btn.Tag is RoomInfoViewModel roomInfoViewModel)
             {
-                currentRoom = roomName;
+                C_EnterRoom c_EnterRoom = new C_EnterRoom
+                {
+                    RoomId = roomInfoViewModel.RoomId
+                };
+                serverSession.Send(c_EnterRoom);
+                ChatLogs.Clear();
                 isRoomOwner = false;
                 DeleteRoomButton.Visibility = isRoomOwner ? Visibility.Visible : Visibility.Collapsed;
-                ChatUsers.Clear();
-                ChatUsers.Add("User1");
-                ChatUsers.Add("User2");
-                ChatLogs.Clear();
-                ChatLogs.Add($"[{currentRoom}] 채팅방에 입장했습니다.");
                 ShowChatRoomScreen();
             }
         }
@@ -106,7 +117,7 @@ namespace ChatClient
         {
             if (!string.IsNullOrEmpty(currentRoom))
             {
-                Rooms.Remove(currentRoom);
+                //Rooms.Remove(currentRoom);
                 currentRoom = "";
                 ShowLobbyScreen();
             }
@@ -203,6 +214,42 @@ namespace ChatClient
         {
             get => _proto.UserId;
             set => SetProperty(() => _proto.UserId, v => _proto.UserId = v, value);
+        }
+    }
+
+
+    public class RoomInfoViewModel : ProtoViewModelBase<RoomInfo>
+    {
+        public RoomInfoViewModel(RoomInfo proto) : base(proto) { }
+
+        public string RoomName
+        {
+            get => _proto.RoomName;
+            set => SetProperty(() => _proto.RoomName, v => _proto.RoomName = v, value);
+        }
+
+        public int RoomId
+        {
+            get => _proto.RoomId;
+            set => SetProperty(() => _proto.RoomId, v => _proto.RoomId = v, value);
+        }
+
+        public int RoomMasterUserId
+        {
+            get => _proto.RoomMasterUserId;
+            set => SetProperty(() => _proto.RoomMasterUserId, v => _proto.RoomMasterUserId = v, value);
+        }
+
+        public RepeatedField<UserInfo> UserInfos
+        {
+            get => _proto.UserInfos;
+            set => SetProperty(() => _proto.UserInfos, v => {
+                _proto.UserInfos.Clear();
+                foreach (var item in v)
+                {
+                    _proto.UserInfos.Add(item);
+                }
+            }, value);
         }
     }
 }

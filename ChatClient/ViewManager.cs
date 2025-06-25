@@ -17,10 +17,13 @@ public interface IViewManager
     void ShowRoomUserList(RepeatedField<UserInfo> userInfos);
     void ShowLobbyUserList(RepeatedField<UserInfo> userInfos);
     void ShowLobbyUserList(Dictionary<int, UserInfo> userInfos);
-    void ShowChangedNickname(string oldName, string newName);
     void ShowChangedNickname(UserInfo userInfo, string newName);
+    void ShowLobbyScreen();
+    void ShowRoomScreen();
+    void ShowAddedRoom(RoomInfo roomInfo);
+    void ShowAddedUser(int roomId, UserInfo userInfo);
+    void ShowRemovedUser(int roomId, UserInfo userInfo);
 }
-
 public class ViewManager : IViewManager
 {
     public MainWindow MainWindow { get; set; } // 메인 윈도우 참조
@@ -47,7 +50,7 @@ public class ViewManager : IViewManager
             MainWindow.Rooms.Clear();
             foreach (var roomInfo in roomInfos)
             {
-                MainWindow.Rooms.Add(roomInfo.RoomName);
+                MainWindow.Rooms.Add(new RoomInfoViewModel(roomInfo));
             }
         });
     }
@@ -63,10 +66,10 @@ public class ViewManager : IViewManager
         Application.Current.Dispatcher.Invoke(() =>
         {
             // 현재 방에 있는 유저 목록 갱신
-            MainWindow.LobbyUsers.Clear();
+            MainWindow.ChatUsers.Clear();
             foreach (var user in userInfos)
             {
-                MainWindow.LobbyUsers.Add(new UserInfoViewModel(user));
+                MainWindow.ChatUsers.Add(new UserInfoViewModel(user));
             }
         });
     }
@@ -97,15 +100,6 @@ public class ViewManager : IViewManager
         });
     }
 
-    public void ShowChangedNickname(string oldName, string newName)
-    {
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-            //MainWindow.LobbyUsers.Remove(oldName);
-            //MainWindow.LobbyUsers.Add(newName);
-        });
-    }
-
     public void ShowChangedNickname(UserInfo userInfo, string newName)
     {
         Application.Current.Dispatcher.Invoke(() =>
@@ -119,5 +113,68 @@ public class ViewManager : IViewManager
                 }
             }
         });
+    }
+
+    public void ShowLobbyScreen()
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            MainWindow.ShowLobbyScreen();
+        });
+    }
+
+    public void ShowRoomScreen()
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            MainWindow.ShowChatRoomScreen();
+        });
+    }
+
+    public void ShowAddedRoom(RoomInfo roomInfo)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            MainWindow.Rooms.Add(new RoomInfoViewModel(roomInfo));
+        });
+    }
+
+    public void ShowAddedUser(int roomId, UserInfo userInfo)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            foreach (var room in MainWindow.Rooms)
+            {
+                if (room.RoomId == roomId)
+                {
+                    room.UserInfos.Add(userInfo);
+                }
+            }
+        });
+    }
+
+    public void ShowRemovedUser(int roomId, UserInfo userInfo)
+    {
+        if (roomId == 0)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                MainWindow.LobbyUsers.Remove(MainWindow.LobbyUsers.FirstOrDefault(u => u.Proto.UserId == userInfo.UserId));
+            });
+        }
+        else
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var room in MainWindow.Rooms)
+                {
+                    if (room.RoomId == roomId)
+                    {
+                        room.UserInfos.Remove(userInfo);
+                        break;
+                    }
+                }
+            });
+        }
     }
 }

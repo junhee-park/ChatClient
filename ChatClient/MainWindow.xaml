@@ -24,7 +24,7 @@
             <GroupBox Header="방 목록" Grid.Column="1" Margin="5">
                 <DockPanel>
                     <Button x:Name="CreateRoomButton" Content="방 생성" DockPanel.Dock="Top" Margin="0,0,0,5" Click="CreateRoomButton_Click"/>
-                    <ListBox x:Name="RoomListBox" Grid.Column="1" Margin="10">
+                    <ListBox x:Name="RoomListBox" Grid.Column="1" Margin="10" ItemsSource="{Binding RoomInfoViewModel}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="5">
@@ -32,7 +32,7 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding RoomName}" VerticalAlignment="Center" />
                                     <Button Grid.Column="1" Content="입장" Margin="5,0,0,0" Padding="10,2"
                         Click="JoinRoomButton_Click"
                         Tag="{Binding}" />
@@ -54,7 +54,13 @@
 
             <!-- 유저 목록 -->
             <GroupBox Header="유저 목록" Grid.Column="0" Margin="5">
-                <ListBox x:Name="ChatUserList"/>
+                <ListBox x:Name="ChatUserList">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Nickname}" Margin="5"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </GroupBox>
 
             <!-- 채팅 영역 -->
