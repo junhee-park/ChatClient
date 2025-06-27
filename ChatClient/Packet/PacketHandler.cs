@@ -23,7 +23,7 @@ public static class PacketHandler
         ServerSession serverSession = session as ServerSession;
         S_Chat s_ChatPacket = packet as S_Chat;
 
-        serverSession.ViewManager.ShowText($"{s_ChatPacket.UserId}[{s_ChatPacket.Timestamp.ToDateTime()}]: {s_ChatPacket.Msg}");
+        serverSession.ViewManager.ShowText(s_ChatPacket);
     }
 
     public static void S_PingHandler(Session session, IMessage packet)
@@ -48,7 +48,7 @@ public static class PacketHandler
             return;
         }
 
-        UserInfo userInfo = RoomManager.Instance.UserInfos[s_SetNicknamePacket.UserId];
+        UserInfo userInfo = RoomManager.Instance.LobbyUserInfos[s_SetNicknamePacket.UserId];
 
         serverSession.ViewManager.ShowChangedNickname(userInfo, s_SetNicknamePacket.Nickname);
     }
@@ -68,8 +68,8 @@ public static class PacketHandler
         RoomManager.Instance.CreateRoom(s_CreateRoomPacket.RoomInfo);
 
         // 로비 리스트에서 방을 생성한 유저 제거
-        var roomMasterUser = RoomManager.Instance.UserInfos[s_CreateRoomPacket.RoomInfo.RoomMasterUserId];
-        RoomManager.Instance.UserInfos.Remove(s_CreateRoomPacket.RoomInfo.RoomMasterUserId);
+        var roomMasterUser = RoomManager.Instance.LobbyUserInfos[s_CreateRoomPacket.RoomInfo.RoomMasterUserId];
+        RoomManager.Instance.LobbyUserInfos.Remove(s_CreateRoomPacket.RoomInfo.RoomMasterUserId);
 
         // 방 생성자는 방에 입장한 것으로 간주하고 방 정보와 유저 리스트를 뷰 매니저에 전달하여 UI 갱신
         if (serverSession.UserInfo.UserId == s_CreateRoomPacket.RoomInfo.RoomMasterUserId)
@@ -142,7 +142,7 @@ public static class PacketHandler
 
         var roomManager = RoomManager.Instance;
 
-        roomManager.AddUserToRoom(s_EnterRoomAnyUserPacket.RoomId, serverSession.UserInfo);
+        roomManager.AddUserToRoom(s_EnterRoomAnyUserPacket.RoomId, s_EnterRoomAnyUserPacket.UserInfo);
         serverSession.ViewManager.ShowAddedUser(s_EnterRoomAnyUserPacket.RoomId, s_EnterRoomAnyUserPacket.UserInfo);
     }
 
@@ -160,7 +160,7 @@ public static class PacketHandler
 
         // 로비에 유저가 입장했을 때
         roomManager.AddUserToLobby(s_EnterUserPacket.UserInfo);
-        serverSession.ViewManager.ShowLobbyUserList(roomManager.UserInfos);
+        serverSession.ViewManager.ShowLobbyUserList(roomManager.LobbyUserInfos);
     }
 
     public static void S_UserListHandler(Session session, IMessage packet)
@@ -195,7 +195,7 @@ public static class PacketHandler
         RoomManager.Instance.RefreshUserInfos(s_EnterLobby.UserInfos);
 
         // 본인 유저 인포를 세션에 캐싱
-        serverSession.UserInfo = RoomManager.Instance.UserInfos[s_EnterLobby.UserId];
+        serverSession.UserInfo = RoomManager.Instance.LobbyUserInfos[s_EnterLobby.UserId];
 
         // 뷰 매니저에 룸 리스트와 유저 리스트를 전달하여 UI 갱신
         serverSession.ViewManager.ShowRoomList(s_EnterLobby.Rooms);

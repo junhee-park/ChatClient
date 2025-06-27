@@ -1,6 +1,7 @@
-﻿<Window x:Class="ChatClient.MainWindow"
+﻿<Window
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="ChatClient.MainWindow"
         Title="Chat App" Height="500" Width="800">
     <Grid>
         <Grid x:Name="LobbyScreen">
@@ -43,7 +44,7 @@
                 </DockPanel>
             </GroupBox>
 
-            <Button Content="닉네임 변경" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5" Width="100" Click="ChangeNicknameButton_Click"/>
+            <Button x:Name="ChangeNicknameButton" Content="닉네임 변경" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5" Width="100" Click="ChangeNicknameButton_Click"/>
         </Grid>
 
         <Grid x:Name="ChatRoomScreen" Visibility="Collapsed">
@@ -73,13 +74,12 @@
                 <TextBox x:Name="ChatLog" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
 
                 <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,5,0,0">
-                    <TextBox x:Name="ChatInput" Width="600" Margin="0,0,5,0"/>
-                    <Button Content="전송" Width="75" Click="SendChatButton_Click"/>
+                    <TextBox x:Name="ChatInput" Width="511" Margin="0,0,5,0" KeyDown="ChatInputBox_KeyDown"/>
+                    <Button x:Name="SendButton" Content="전송" Width="75" Click="SendChatButton_Click"/>
                 </StackPanel>
             </Grid>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5">
-                <Button Content="닉네임 변경" Width="100" Margin="0,0,5,0" Click="ChangeNicknameButton_Click"/>
                 <Button Content="나가기" Width="100" Margin="0,0,5,0" Click="LeaveRoomButton_Click"/>
                 <Button x:Name="DeleteRoomButton" Content="방 삭제" Width="100" Visibility="Collapsed" Click="DeleteRoomButton_Click"/>
             </StackPanel>

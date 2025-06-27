@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using ChatClient;
 using Google.Protobuf;
@@ -22,7 +23,7 @@ namespace ChatClient
         public ObservableCollection<UserInfoViewModel> LobbyUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
         public ObservableCollection<RoomInfoViewModel> Rooms { get; set; } = new ObservableCollection<RoomInfoViewModel>();
         public ObservableCollection<UserInfoViewModel> ChatUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
-        public ObservableCollection<string> ChatLogs { get; set; } = new ObservableCollection<string>();
+        public StringBuilder ChatLogs { get; set; } = new StringBuilder();
 
         private string currentRoom = "";
         private bool isRoomOwner = false;
@@ -69,12 +70,23 @@ namespace ChatClient
         {
             LobbyScreen.Visibility = Visibility.Visible;
             ChatRoomScreen.Visibility = Visibility.Collapsed;
+            ChangeNicknameButton.Visibility = Visibility.Visible;
         }
 
         public void ShowChatRoomScreen()
         {
             LobbyScreen.Visibility = Visibility.Collapsed;
             ChatRoomScreen.Visibility = Visibility.Visible;
+            ChangeNicknameButton.Visibility = Visibility.Collapsed;
+        }
+
+        private void ChatInputBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                // 버튼 Click 호출
+                SendButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
         }
 
         private void CreateRoomButton_Click(object sender, RoutedEventArgs e)
@@ -144,7 +156,12 @@ namespace ChatClient
         {
             if (!string.IsNullOrWhiteSpace(ChatInput.Text))
             {
-                ChatLogs.Add(ChatInput.Text);
+                C_Chat c_Chat = new C_Chat
+                {
+                    Msg = ChatInput.Text
+                };
+                serverSession.Send(c_Chat);
+                // 입력 필드 초기화
                 ChatInput.Clear();
             }
         }
@@ -240,14 +257,14 @@ namespace ChatClient
             set => SetProperty(() => _proto.RoomMasterUserId, v => _proto.RoomMasterUserId = v, value);
         }
 
-        public RepeatedField<UserInfo> UserInfos
+        public MapField<int, UserInfo> UserInfos
         {
             get => _proto.UserInfos;
             set => SetProperty(() => _proto.UserInfos, v => {
                 _proto.UserInfos.Clear();
                 foreach (var item in v)
                 {
-                    _proto.UserInfos.Add(item);
+                    _proto.UserInfos.Add(item.Key, item.Value);
                 }
             }, value);
         }

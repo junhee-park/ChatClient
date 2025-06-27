@@ -25,7 +25,11 @@ public class ViewManager : IViewManager
     }
     public void ShowText(string text)
     {
-        
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            MainWindow.ChatLogs.AppendLine(text);
+            MainWindow.ChatLog.Text = MainWindow.ChatLogs.ToString();
+        });
     }
 
     public void ShowRoomList(RepeatedField<RoomInfo> roomInfos)
@@ -42,17 +46,30 @@ public class ViewManager : IViewManager
 
     public void ShowText(S_Chat s_Chat)
     {
-        throw new NotImplementedException();
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            if (RoomManager.Instance.CurrentRoom.UserInfos.TryGetValue(s_Chat.UserId, out UserInfo userInfo))
+            {
+                // 현재 방에 있는 유저의 메시지
+                MainWindow.ChatLogs.AppendLine($"{userInfo.Nickname} ({s_Chat.UserId}) [{s_Chat.Timestamp}]: {s_Chat.Msg}");
+            }
+            else
+            {
+                // 현재 방에 없는 유저
+                MainWindow.ChatLogs.AppendLine($"({s_Chat.UserId}) [{s_Chat.Timestamp}]: {s_Chat.Msg}");
+            }
+            MainWindow.ChatLog.Text = MainWindow.ChatLogs.ToString();
+        });
     }
 
 
-    public void ShowRoomUserList(RepeatedField<UserInfo> userInfos)
+    public void ShowRoomUserList(MapField<int, UserInfo> userInfos)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
             // 현재 방에 있는 유저 목록 갱신
             MainWindow.ChatUsers.Clear();
-            foreach (var user in userInfos)
+            foreach (var user in userInfos.Values)
             {
                 MainWindow.ChatUsers.Add(new UserInfoViewModel(user));
             }
@@ -143,7 +160,7 @@ public class ViewManager : IViewManager
                     {
                         if (room.RoomId == roomId)
                         {
-                            room.UserInfos.Add(userInfo);
+                            room.UserInfos.Add(userInfo.UserId, userInfo);
                             return;
                         }
                     }
@@ -174,7 +191,7 @@ public class ViewManager : IViewManager
                 {
                     if (room.RoomId == roomId)
                     {
-                        room.UserInfos.Remove(userInfo);
+                        room.UserInfos.Remove(userInfo.UserId);
                         break;
                     }
                 }

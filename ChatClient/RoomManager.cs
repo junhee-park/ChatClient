@@ -13,11 +13,10 @@ public class RoomManager
     public static RoomManager Instance { get { return _instance; } }
     #endregion
 
-    public string TempRoomName { get; set; } = string.Empty; // 방 이름 생성을 위한 임시 이름
     public RoomInfo CurrentRoom { get; set; } = null; // 현재 참여 중인 방 정보
 
     public Dictionary<int, RoomInfo> Rooms { get; private set; } = new Dictionary<int, RoomInfo>();
-    public Dictionary<int, UserInfo> UserInfos { get; private set; } = new Dictionary<int, UserInfo>(); // 로비에 존재하는 유저의 id목록
+    public Dictionary<int, UserInfo> LobbyUserInfos { get; private set; } = new Dictionary<int, UserInfo>(); // 로비에 존재하는 유저의 id목록
 
     object _lock = new object();
 
@@ -32,8 +31,8 @@ public class RoomManager
         {
             if (Rooms.TryGetValue(roomId, out RoomInfo room))
             {
-                room.UserInfos.Add(userInfo);
-                UserInfos.Remove(userInfo.UserId); // 로비에서 제거
+                room.UserInfos.Add(userInfo.UserId, userInfo);
+                LobbyUserInfos.Remove(userInfo.UserId); // 로비에서 제거
             }
         }
     }
@@ -42,7 +41,7 @@ public class RoomManager
     {
         lock (_lock)
         {
-            UserInfos[userInfo.UserId] = userInfo;
+            LobbyUserInfos[userInfo.UserId] = userInfo;
         }
     }
 
@@ -60,8 +59,8 @@ public class RoomManager
         lock (_lock)
         {
             Rooms.TryGetValue(CurrentRoom.RoomId, out RoomInfo roomInfo);
-            roomInfo.UserInfos.Remove(userInfo);
-            UserInfos.Add(userInfo.UserId, userInfo); // 유저를 로비로 이동
+            roomInfo.UserInfos.Remove(userInfo.UserId);
+            LobbyUserInfos.Add(userInfo.UserId, userInfo); // 유저를 로비로 이동
         }
     }
 
@@ -76,10 +75,10 @@ public class RoomManager
 
     public void RefreshUserInfos(RepeatedField<UserInfo> userInfos)
     {
-        UserInfos.Clear();
+        LobbyUserInfos.Clear();
         foreach (var user in userInfos)
         {
-            UserInfos.Add(user.UserId, user);
+            LobbyUserInfos.Add(user.UserId, user);
         }
     }
 
@@ -87,8 +86,8 @@ public class RoomManager
     {
         lock (_lock)
         {
-            string oldNickname = UserInfos[userId].Nickname;
-            UserInfos[userId].Nickname = nickname;
+            string oldNickname = LobbyUserInfos[userId].Nickname;
+            LobbyUserInfos[userId].Nickname = nickname;
             return oldNickname;
         }
     }
