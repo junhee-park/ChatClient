@@ -15,8 +15,8 @@ public class RoomManager
 
     public RoomInfo CurrentRoom { get; set; } = null; // 현재 참여 중인 방 정보
 
-    public Dictionary<int, RoomInfo> Rooms { get; private set; } = new Dictionary<int, RoomInfo>();
-    public Dictionary<int, UserInfo> LobbyUserInfos { get; private set; } = new Dictionary<int, UserInfo>(); // 로비에 존재하는 유저의 id목록
+    public MapField<int, RoomInfo> Rooms { get; private set; } = new MapField<int, RoomInfo>();
+    public MapField<int, UserInfo> UserInfos { get; private set; } = new MapField<int, UserInfo>(); // 로비에 존재하는 유저의 id목록
 
     object _lock = new object();
 
@@ -32,7 +32,7 @@ public class RoomManager
             if (Rooms.TryGetValue(roomId, out RoomInfo room))
             {
                 room.UserInfos.Add(userInfo.UserId, userInfo);
-                LobbyUserInfos.Remove(userInfo.UserId); // 로비에서 제거
+                UserInfos.Remove(userInfo.UserId); // 로비에서 제거
             }
         }
     }
@@ -41,7 +41,7 @@ public class RoomManager
     {
         lock (_lock)
         {
-            LobbyUserInfos[userInfo.UserId] = userInfo;
+            UserInfos[userInfo.UserId] = userInfo;
         }
     }
 
@@ -50,7 +50,6 @@ public class RoomManager
         lock (_lock)
         {
             Rooms.Add(roomInfo.RoomId, roomInfo);
-            CurrentRoom = roomInfo; // 현재 방 정보 설정
         }
     }
 
@@ -60,25 +59,25 @@ public class RoomManager
         {
             Rooms.TryGetValue(CurrentRoom.RoomId, out RoomInfo roomInfo);
             roomInfo.UserInfos.Remove(userInfo.UserId);
-            LobbyUserInfos.Add(userInfo.UserId, userInfo); // 유저를 로비로 이동
+            UserInfos.Add(userInfo.UserId, userInfo); // 유저를 로비로 이동
         }
     }
 
-    public void Refresh(Google.Protobuf.Collections.RepeatedField<RoomInfo> roomInfoList)
+    public void Refresh(MapField<int, RoomInfo> roomInfoList)
     {
         Rooms.Clear();
         foreach (var room in roomInfoList)
         {
-            Rooms.Add(room.RoomId, room);
+            Rooms.Add(room.Key, room.Value);
         }
     }
 
-    public void RefreshUserInfos(RepeatedField<UserInfo> userInfos)
+    public void RefreshUserInfos(MapField<int, UserInfo> userInfos)
     {
-        LobbyUserInfos.Clear();
+        UserInfos.Clear();
         foreach (var user in userInfos)
         {
-            LobbyUserInfos.Add(user.UserId, user);
+            UserInfos.Add(user.Key, user.Value);
         }
     }
 
@@ -86,8 +85,8 @@ public class RoomManager
     {
         lock (_lock)
         {
-            string oldNickname = LobbyUserInfos[userId].Nickname;
-            LobbyUserInfos[userId].Nickname = nickname;
+            string oldNickname = UserInfos[userId].Nickname;
+            UserInfos[userId].Nickname = nickname;
             return oldNickname;
         }
     }

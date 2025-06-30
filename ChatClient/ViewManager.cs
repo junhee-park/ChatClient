@@ -32,14 +32,14 @@ public class ViewManager : IViewManager
         });
     }
 
-    public void ShowRoomList(RepeatedField<RoomInfo> roomInfos)
+    public void ShowRoomList(MapField<int, RoomInfo> roomInfos)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
             MainWindow.Rooms.Clear();
             foreach (var roomInfo in roomInfos)
             {
-                MainWindow.Rooms.Add(new RoomInfoViewModel(roomInfo));
+                MainWindow.Rooms.Add(new RoomInfoViewModel(roomInfo.Value));
             }
         });
     }
@@ -76,7 +76,7 @@ public class ViewManager : IViewManager
         });
     }
 
-    public void ShowLobbyUserList(RepeatedField<UserInfo> userInfos)
+    public void ShowLobbyUserList(MapField<int, UserInfo> userInfos)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
@@ -84,7 +84,7 @@ public class ViewManager : IViewManager
             MainWindow.LobbyUsers.Clear();
             foreach (var user in userInfos)
             {
-                MainWindow.LobbyUsers.Add(new UserInfoViewModel(user));
+                MainWindow.LobbyUsers.Add(new UserInfoViewModel(user.Value));
             }
         });
     }
@@ -181,6 +181,14 @@ public class ViewManager : IViewManager
             Application.Current.Dispatcher.Invoke(() =>
             {
                 MainWindow.LobbyUsers.Remove(MainWindow.LobbyUsers.FirstOrDefault(u => u.Proto.UserId == userInfo.UserId));
+            });
+        }
+        else if (RoomManager.Instance.CurrentRoom?.RoomId == roomId)
+        {
+            // 방에서 유저 제거
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                MainWindow.ChatUsers.Remove(MainWindow.ChatUsers.FirstOrDefault(u => u.Proto.UserId == userInfo.UserId));
             });
         }
         else

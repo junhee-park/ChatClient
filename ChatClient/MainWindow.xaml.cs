@@ -25,7 +25,6 @@ namespace ChatClient
         public ObservableCollection<UserInfoViewModel> ChatUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
         public StringBuilder ChatLogs { get; set; } = new StringBuilder();
 
-        private string currentRoom = "";
         private bool isRoomOwner = false;
 
         public MainWindow()
@@ -50,13 +49,6 @@ namespace ChatClient
             RoomListBox.ItemsSource = Rooms;
             ChatUserList.ItemsSource = ChatUsers;
 
-            //RoomInfoViewModel roomInfoViewModel = new RoomInfoViewModel(new RoomInfo());
-            //roomInfoViewModel.RoomName = "기본 방";
-            //roomInfoViewModel.RoomId = 1;
-            //roomInfoViewModel.RoomMasterUserId = 1;
-            //Rooms.Add(roomInfoViewModel);
-            //LobbyUsers.Add(new UserInfoViewModel(new UserInfo { Nickname = "User1", UserId = 1 }));
-
             this.Closing += MainWindow_Closing;
         }
 
@@ -68,6 +60,8 @@ namespace ChatClient
 
         public void ShowLobbyScreen()
         {
+            ChatLogs.Clear();
+            DeleteRoomButton.Visibility = Visibility.Collapsed;
             LobbyScreen.Visibility = Visibility.Visible;
             ChatRoomScreen.Visibility = Visibility.Collapsed;
             ChangeNicknameButton.Visibility = Visibility.Visible;
@@ -75,6 +69,8 @@ namespace ChatClient
 
         public void ShowChatRoomScreen()
         {
+            ChatLogs.Clear();
+            DeleteRoomButton.Visibility = isRoomOwner ? Visibility.Visible : Visibility.Collapsed;
             LobbyScreen.Visibility = Visibility.Collapsed;
             ChatRoomScreen.Visibility = Visibility.Visible;
             ChangeNicknameButton.Visibility = Visibility.Collapsed;
@@ -99,11 +95,14 @@ namespace ChatClient
                     RoomName = input.InputText
                 };
                 serverSession.Send(c_CreateRoom);
+                isRoomOwner = true;
             }
         }
 
         private void JoinRoomButton_Click(object sender, RoutedEventArgs e)
         {
+            isRoomOwner = false;
+
             if (sender is Button btn && btn.Tag is RoomInfoViewModel roomInfoViewModel)
             {
                 C_EnterRoom c_EnterRoom = new C_EnterRoom
@@ -111,28 +110,22 @@ namespace ChatClient
                     RoomId = roomInfoViewModel.RoomId
                 };
                 serverSession.Send(c_EnterRoom);
-                ChatLogs.Clear();
-                isRoomOwner = false;
-                DeleteRoomButton.Visibility = isRoomOwner ? Visibility.Visible : Visibility.Collapsed;
                 ShowChatRoomScreen();
             }
         }
 
         private void LeaveRoomButton_Click(object sender, RoutedEventArgs e)
         {
-            currentRoom = "";
             isRoomOwner = false;
             ShowLobbyScreen();
+            C_LeaveRoom c_LeaveRoom = new C_LeaveRoom();
+            serverSession.Send(c_LeaveRoom);
         }
 
         private void DeleteRoomButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(currentRoom))
-            {
-                //Rooms.Remove(currentRoom);
-                currentRoom = "";
-                ShowLobbyScreen();
-            }
+            //Rooms.Remove(currentRoom);
+            ShowLobbyScreen();
         }
 
 
