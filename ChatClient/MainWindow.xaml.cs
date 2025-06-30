@@ -61,6 +61,7 @@ namespace ChatClient
         public void ShowLobbyScreen()
         {
             ChatLogs.Clear();
+            ChatLog.Text = ChatLogs.ToString();
             DeleteRoomButton.Visibility = Visibility.Collapsed;
             LobbyScreen.Visibility = Visibility.Visible;
             ChatRoomScreen.Visibility = Visibility.Collapsed;
@@ -70,6 +71,7 @@ namespace ChatClient
         public void ShowChatRoomScreen()
         {
             ChatLogs.Clear();
+            ChatLog.Text = ChatLogs.ToString();
             DeleteRoomButton.Visibility = isRoomOwner ? Visibility.Visible : Visibility.Collapsed;
             LobbyScreen.Visibility = Visibility.Collapsed;
             ChatRoomScreen.Visibility = Visibility.Visible;
@@ -117,7 +119,7 @@ namespace ChatClient
         private void LeaveRoomButton_Click(object sender, RoutedEventArgs e)
         {
             isRoomOwner = false;
-            ShowLobbyScreen();
+
             C_LeaveRoom c_LeaveRoom = new C_LeaveRoom();
             serverSession.Send(c_LeaveRoom);
         }
