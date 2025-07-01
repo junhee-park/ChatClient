@@ -60,6 +60,7 @@ namespace ChatClient
 
         public void ShowLobbyScreen()
         {
+            isRoomOwner = false;
             ChatLogs.Clear();
             ChatLog.Text = ChatLogs.ToString();
             DeleteRoomButton.Visibility = Visibility.Collapsed;
@@ -76,6 +77,8 @@ namespace ChatClient
             LobbyScreen.Visibility = Visibility.Collapsed;
             ChatRoomScreen.Visibility = Visibility.Visible;
             ChangeNicknameButton.Visibility = Visibility.Collapsed;
+            LeaveRoomButton.Visibility = !isRoomOwner ? Visibility.Visible : Visibility.Collapsed;
+            ChatInput.Focus(); // 채팅 입력 박스에 포커스 설정
         }
 
         private void ChatInputBox_KeyDown(object sender, KeyEventArgs e)
@@ -126,8 +129,15 @@ namespace ChatClient
 
         private void DeleteRoomButton_Click(object sender, RoutedEventArgs e)
         {
-            //Rooms.Remove(currentRoom);
-            ShowLobbyScreen();
+            if (isRoomOwner)
+            {
+                C_DeleteRoom c_DeleteRoom = new C_DeleteRoom();
+                serverSession.Send(c_DeleteRoom);
+            }
+            else
+            {
+                MessageBox.Show("방장만 방을 삭제할 수 있습니다.");
+            }
         }
 
 

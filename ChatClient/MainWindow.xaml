@@ -80,7 +80,7 @@
             </Grid>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5">
-                <Button Content="나가기" Width="100" Margin="0,0,5,0" Click="LeaveRoomButton_Click"/>
+                <Button x:Name="LeaveRoomButton" Content="나가기" Width="100" Margin="0,0,5,0" Click="LeaveRoomButton_Click"/>
                 <Button x:Name="DeleteRoomButton" Content="방 삭제" Width="100" Visibility="Collapsed" Click="DeleteRoomButton_Click"/>
             </StackPanel>
         </Grid>

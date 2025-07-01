@@ -206,4 +206,19 @@ public class ViewManager : IViewManager
             });
         }
     }
+
+    public void ShowRemovedRoom(int roomId)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            foreach (var room in MainWindow.Rooms)
+            {
+                if (room.RoomId == roomId)
+                {
+                    MainWindow.Rooms.Remove(room);
+                    break;
+                }
+            }
+        });
+    }
 }
