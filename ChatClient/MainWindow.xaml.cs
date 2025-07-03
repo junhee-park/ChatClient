@@ -192,86 +192,39 @@ namespace ChatClient
         }
     }
 
-    public abstract class ProtoViewModelBase<TProto> : INotifyPropertyChanged
+    public class UserInfoViewModel
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected TProto _proto;
-
-        public TProto Proto => _proto;
-
-        public ProtoViewModelBase(TProto proto)
+        public UserInfoViewModel(UserInfo userinfo)
         {
-            _proto = proto;
+            Nickname = userinfo.Nickname;
+            UserId = userinfo.UserId;
         }
 
-        protected bool SetProperty<T>(Func<T> getter, Action<T> setter, T value, [CallerMemberName] string propertyName = null)
+        public string Nickname { get; set; }
+
+        public int UserId { get; set; }
+    }
+
+    public class RoomInfoViewModel
+    {
+        public RoomInfoViewModel(RoomInfo roomInfo)
         {
-            if (!EqualityComparer<T>.Default.Equals(getter(), value))
+            RoomId = roomInfo.RoomId;
+            RoomName = roomInfo.RoomName;
+            RoomMasterUserId = roomInfo.RoomMasterUserId;
+            UserInfos = new Dictionary<int, UserInfoViewModel>();
+            foreach (var userInfo in roomInfo.UserInfos)
             {
-                setter(value);
-                OnPropertyChanged(propertyName);
-                return true;
+                UserInfos[userInfo.Key] = new UserInfoViewModel(userInfo.Value);
             }
-            return false;
         }
 
-        protected void OnPropertyChanged([CallerMemberName] string name = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-    }
+        public string RoomName { get; set; }
 
-    public class UserInfoViewModel : ProtoViewModelBase<UserInfo>
-    {
-        public UserInfoViewModel(UserInfo proto) : base(proto) { }
+        public int RoomId { get; set; }
 
-        public string Nickname
-        {
-            get => _proto.Nickname;
-            set => SetProperty(() => _proto.Nickname, v => _proto.Nickname = v, value);
-        }
+        public int RoomMasterUserId { get; set; }
 
-        public int UserId
-        {
-            get => _proto.UserId;
-            set => SetProperty(() => _proto.UserId, v => _proto.UserId = v, value);
-        }
-    }
-
-
-    public class RoomInfoViewModel : ProtoViewModelBase<RoomInfo>
-    {
-        public RoomInfoViewModel(RoomInfo proto) : base(proto) { }
-
-        public string RoomName
-        {
-            get => _proto.RoomName;
-            set => SetProperty(() => _proto.RoomName, v => _proto.RoomName = v, value);
-        }
-
-        public int RoomId
-        {
-            get => _proto.RoomId;
-            set => SetProperty(() => _proto.RoomId, v => _proto.RoomId = v, value);
-        }
-
-        public int RoomMasterUserId
-        {
-            get => _proto.RoomMasterUserId;
-            set => SetProperty(() => _proto.RoomMasterUserId, v => _proto.RoomMasterUserId = v, value);
-        }
-
-        public MapField<int, UserInfo> UserInfos
-        {
-            get => _proto.UserInfos;
-            set => SetProperty(() => _proto.UserInfos, v => {
-                _proto.UserInfos.Clear();
-                foreach (var item in v)
-                {
-                    _proto.UserInfos.Add(item.Key, item.Value);
-                }
-            }, value);
-        }
+        public Dictionary<int, UserInfoViewModel> UserInfos { get; set; }
     }
 }

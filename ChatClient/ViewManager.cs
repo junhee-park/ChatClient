@@ -108,7 +108,7 @@ public class ViewManager : IViewManager
         {
             foreach (var user in MainWindow.LobbyUsers)
             {
-                if (user.Proto.UserId == userInfo.UserId)
+                if (user.UserId == userInfo.UserId)
                 {
                     user.Nickname = newName;
                     break;
@@ -160,7 +160,7 @@ public class ViewManager : IViewManager
                     {
                         if (room.RoomId == roomId)
                         {
-                            room.UserInfos.Add(userInfo.UserId, userInfo);
+                            room.UserInfos.Add(userInfo.UserId, new UserInfoViewModel(userInfo));
                             return;
                         }
                     }
@@ -180,7 +180,7 @@ public class ViewManager : IViewManager
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                MainWindow.LobbyUsers.Remove(MainWindow.LobbyUsers.FirstOrDefault(u => u.Proto.UserId == userInfo.UserId));
+                MainWindow.LobbyUsers.Remove(MainWindow.LobbyUsers.FirstOrDefault(u => u.UserId == userInfo.UserId));
             });
         }
         else if (RoomManager.Instance.CurrentRoom?.RoomId == roomId)
@@ -188,7 +188,7 @@ public class ViewManager : IViewManager
             // 방에서 유저 제거
             Application.Current.Dispatcher.Invoke(() =>
             {
-                MainWindow.ChatUsers.Remove(MainWindow.ChatUsers.FirstOrDefault(u => u.Proto.UserId == userInfo.UserId));
+                MainWindow.ChatUsers.Remove(MainWindow.ChatUsers.FirstOrDefault(u => u.UserId == userInfo.UserId));
             });
         }
         else
