@@ -192,21 +192,39 @@ namespace ChatClient
         }
     }
 
-    public class UserInfoViewModel
+    public class UserInfoViewModel : INotifyPropertyChanged
     {
+        private string _nickname;
+        private int _userId;
+        public string Nickname { get => _nickname; set { _nickname = value; OnPropertyChanged(nameof(Nickname)); } }
+
+        public int UserId { get => _userId; set { _userId = value; OnPropertyChanged(nameof(UserId)); } }
         public UserInfoViewModel(UserInfo userinfo)
         {
             Nickname = userinfo.Nickname;
             UserId = userinfo.UserId;
         }
 
-        public string Nickname { get; set; }
-
-        public int UserId { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string prop)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
     }
 
     public class RoomInfoViewModel
     {
+        private int _roomId;
+        private string _roomName;
+        private int _roomMasterUserId;
+        private Dictionary<int, UserInfoViewModel> _userInfos;
+
+        public int RoomId { get => _roomId; set { _roomId = value; OnPropertyChanged(nameof(RoomId)); } }
+
+        public string RoomName { get => _roomName; set { _roomName = value; OnPropertyChanged(nameof(RoomName)); } }
+
+        public int RoomMasterUserId { get => _roomMasterUserId; set { _roomMasterUserId = value; OnPropertyChanged(nameof(RoomMasterUserId)); } }
+
+        public Dictionary<int, UserInfoViewModel> UserInfos { get; set; }
+
         public RoomInfoViewModel(RoomInfo roomInfo)
         {
             RoomId = roomInfo.RoomId;
@@ -219,12 +237,8 @@ namespace ChatClient
             }
         }
 
-        public string RoomName { get; set; }
-
-        public int RoomId { get; set; }
-
-        public int RoomMasterUserId { get; set; }
-
-        public Dictionary<int, UserInfoViewModel> UserInfos { get; set; }
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged(string prop)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
     }
 }
