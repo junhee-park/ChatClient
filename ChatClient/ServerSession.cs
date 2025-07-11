@@ -9,7 +9,6 @@ using Google.Protobuf;
 using ServerCore;
 using Google.Protobuf.Protocol;
 using System.Globalization;
-
 public class ServerSession : PacketSession
 {
     public UserInfo UserInfo { get; set; } = new UserInfo(); // 유저 정보
@@ -17,6 +16,18 @@ public class ServerSession : PacketSession
 
     public IViewManager ViewManager { get; set; } // 뷰 매니저
 
+    public RoomManager RoomManager { get; set; } = new RoomManager(); // 방 관리
+
+    private UserState _currentState;
+    public UserState CurrentState
+    {
+        get => _currentState;
+        set
+        {
+            _currentState = value;
+            ViewManager.ShowChangedScreen(_currentState);
+        }
+    }
     public ServerSession(Socket socket) : base(socket)
     {
 

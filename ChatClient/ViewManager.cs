@@ -12,12 +12,6 @@ using Google.Protobuf.Protocol;
 public class ViewManager : IViewManager
 {
     public MainWindow MainWindow { get; set; } // 메인 윈도우 참조
-    public ViewManager()
-    {
-        MainWindow = App.Current.MainWindow as MainWindow;
-        if (MainWindow == null)
-            throw new InvalidOperationException("MainWindow is not set.");
-    }
 
     public ViewManager(MainWindow mainWindow)
     {
@@ -48,7 +42,7 @@ public class ViewManager : IViewManager
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            if (RoomManager.Instance.CurrentRoom.UserInfos.TryGetValue(s_Chat.UserId, out UserInfo userInfo))
+            if (MainWindow.serverSession.RoomManager.CurrentRoom.UserInfos.TryGetValue(s_Chat.UserId, out UserInfo userInfo))
             {
                 // 현재 방에 있는 유저의 메시지
                 MainWindow.ChatLogs.AppendLine($"{userInfo.Nickname} ({s_Chat.UserId}) [{s_Chat.Timestamp}]: {s_Chat.Msg}");
@@ -153,14 +147,14 @@ public class ViewManager : IViewManager
             }
             else
             {
-                if (RoomManager.Instance.CurrentRoom == null)
+                if (MainWindow.serverSession.RoomManager.CurrentRoom == null)
                 {
                     // 로비에 있는 상태에서 방에 유저 추가
                     foreach (var room in MainWindow.Rooms)
                     {
                         if (room.RoomId == roomId)
                         {
-                            room.UserInfos.Add(userInfo.UserId, new UserInfoViewModel(userInfo));
+                            room.UserInfos.TryAdd(userInfo.UserId, new UserInfoViewModel(userInfo));
                             return;
                         }
                     }
@@ -183,7 +177,7 @@ public class ViewManager : IViewManager
                 MainWindow.LobbyUsers.Remove(MainWindow.LobbyUsers.FirstOrDefault(u => u.UserId == userInfo.UserId));
             });
         }
-        else if (RoomManager.Instance.CurrentRoom?.RoomId == roomId)
+        else if (MainWindow.serverSession.RoomManager.CurrentRoom?.RoomId == roomId)
         {
             // 방에서 유저 제거
             Application.Current.Dispatcher.Invoke(() =>
@@ -220,5 +214,21 @@ public class ViewManager : IViewManager
                 }
             }
         });
+    }
+
+    public void ShowChangedScreen(UserState userState)
+    {
+        if (userState == UserState.Lobby)
+        {
+            ShowLobbyScreen();
+        }
+        else if (userState == UserState.Room)
+        {
+            ShowRoomScreen();
+        }
+        else
+        {
+            Console.WriteLine("Unknown user state.");
+        }
     }
 }

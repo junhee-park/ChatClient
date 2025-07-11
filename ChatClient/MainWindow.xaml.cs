@@ -19,7 +19,7 @@ namespace ChatClient
 {
     public partial class MainWindow : Window
     {
-        static ServerSession serverSession;
+        public static ServerSession serverSession;
         public ObservableCollection<UserInfoViewModel> LobbyUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
         public ObservableCollection<RoomInfoViewModel> Rooms { get; set; } = new ObservableCollection<RoomInfoViewModel>();
         public ObservableCollection<UserInfoViewModel> ChatUsers { get; set; } = new ObservableCollection<UserInfoViewModel>();
@@ -210,7 +210,7 @@ namespace ChatClient
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
     }
 
-    public class RoomInfoViewModel
+    public class RoomInfoViewModel : INotifyPropertyChanged
     {
         private int _roomId;
         private string _roomName;
