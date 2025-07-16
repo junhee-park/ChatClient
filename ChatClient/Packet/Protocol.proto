@@ -158,7 +158,7 @@ message S_LeaveRoom {
   string reason = 2;
   map<int32, UserInfo> userInfos = 3;
   map<int32, RoomInfo> rooms = 4;
-  UserState userState = 5;
+UserState userState = 5;
 }
 message C_LeaveRoom {
 }
@@ -198,7 +198,7 @@ message S_LeaveLobbyAnyUser {
 message S_UserInfo {
 	UserInfo userInfo = 1;
 	UserState userState = 2;
-	int32 currentRoomId = 3;
+	RoomInfo roomInfo = 3;
 }
 
 message C_UserInfo {
