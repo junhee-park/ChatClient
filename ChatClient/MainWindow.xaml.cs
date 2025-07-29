@@ -115,7 +115,6 @@ namespace ChatClient
                     RoomId = roomInfoViewModel.RoomId
                 };
                 serverSession.Send(c_EnterRoom);
-                ShowChatRoomScreen();
             }
         }
 
@@ -161,11 +160,45 @@ namespace ChatClient
         {
             if (!string.IsNullOrWhiteSpace(ChatInput.Text))
             {
-                C_Chat c_Chat = new C_Chat
+                if (ChatInput.Text.Contains("/"))
                 {
-                    Msg = ChatInput.Text
-                };
-                serverSession.Send(c_Chat);
+                    // 명령어 처리 로직
+                    string command = ChatInput.Text.Substring(1).Trim();
+                    if (command.StartsWith("info"))
+                    {
+                        // /info 명령어 처리
+                        if (serverSession.CurrentState == UserState.Room)
+                        {
+                            StringBuilder infoBuilder = new StringBuilder();
+                            infoBuilder.AppendLine("현재 방 정보:");
+                            infoBuilder.AppendLine($"방 ID: {serverSession.RoomManager.CurrentRoom.RoomId}");
+                            infoBuilder.AppendLine($"방 이름: {serverSession.RoomManager.CurrentRoom.RoomName}");
+                            infoBuilder.AppendLine($"방장 ID: {serverSession.RoomManager.CurrentRoom.RoomMasterUserId}");
+                            infoBuilder.AppendLine("참여 중인 유저:");
+                            foreach (var user in serverSession.RoomManager.CurrentRoom.UserInfos.Values)
+                            {
+                                infoBuilder.AppendLine($"- {user.Nickname} (ID: {user.UserId})");
+                            }
+                            MessageBox.Show(infoBuilder.ToString(), "방 정보");
+                        }
+                        else
+                        {
+                            MessageBox.Show("채팅방에 참여 중이 아닙니다.");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("알 수 없는 명령어입니다.");
+                    }
+                }
+                else
+                {
+                    C_Chat c_Chat = new C_Chat
+                    {
+                        Msg = ChatInput.Text
+                    };
+                    serverSession.Send(c_Chat);
+                }
                 // 입력 필드 초기화
                 ChatInput.Clear();
             }

@@ -23,6 +23,7 @@ public class ViewManager : IViewManager
         {
             MainWindow.ChatLogs.AppendLine(text);
             MainWindow.ChatLog.Text = MainWindow.ChatLogs.ToString();
+            MainWindow.ChatLog.ScrollToEnd(); // 스크롤을 맨 아래로 이동
         });
     }
 
