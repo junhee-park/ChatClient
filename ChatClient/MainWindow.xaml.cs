@@ -145,8 +145,6 @@ namespace ChatClient
             var input = new InputDialog("닉네임 변경", "새 닉네임을 입력하세요:");
             if (input.ShowDialog() == true)
             {
-                serverSession.TempNickname = input.InputText;
-
                 // 서버에 닉네임 변경 요청을 보내는 로직 추가
                 C_SetNickname c_SetNickname = new C_SetNickname
                 {
