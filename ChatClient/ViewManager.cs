@@ -43,16 +43,7 @@ public class ViewManager : IViewManager
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            if (MainWindow.serverSession.RoomManager.CurrentRoom.UserInfos.TryGetValue(s_Chat.UserId, out UserInfo userInfo))
-            {
-                // 현재 방에 있는 유저의 메시지
-                MainWindow.ChatLogs.AppendLine($"{userInfo.Nickname} ({s_Chat.UserId}) [{s_Chat.Timestamp}]: {s_Chat.Msg}");
-            }
-            else
-            {
-                // 현재 방에 없는 유저
-                MainWindow.ChatLogs.AppendLine($"({s_Chat.UserId}) [{s_Chat.Timestamp}]: {s_Chat.Msg}");
-            }
+            
             MainWindow.ChatLog.Text = MainWindow.ChatLogs.ToString();
         });
     }
